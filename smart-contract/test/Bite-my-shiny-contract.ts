@@ -39,7 +39,4 @@ describe("BiteMyShinyContract", () => {
         expect(result).to.be.a("bigint");                           
         expect(result).to.be.greaterThan(0n);                                                                                                                                                                                                                                                                                             
     }); 
-
-
-
 })
