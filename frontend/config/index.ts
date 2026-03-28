@@ -8,7 +8,7 @@ if (!projectId) {
   throw new Error('NEXT_PUBLIC_REOWN_PROJECT_ID is not defined')
 }
 
-export const networks = [localhost, rskTestnet]
+export const networks = [rskTestnet, localhost]
 
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({

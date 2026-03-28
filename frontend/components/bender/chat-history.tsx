@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react"
 import { useI18n } from "@/lib/i18n"
 import { MessageSquare, User } from "lucide-react"
-import { usePublicClient } from "wagmi"
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from "@/config/contract"
-import { parseAbiItem, formatEther } from "viem"
+import { fetchBetPlacedLogs, fetchWinLogs, fetchLossLogs, type BlockscoutLog } from "@/lib/blockscout"
+import { decodeAbiParameters, formatEther } from "viem"
 
 interface HistoryEntry {
   id: string
@@ -13,7 +12,7 @@ interface HistoryEntry {
   message: string
   won: boolean
   prize?: string
-  blockNumber: bigint
+  blockNumber: string
 }
 
 function formatAddress(address: string): string {
@@ -42,7 +41,6 @@ const benderLossQuotes = [
 
 function getBenderQuote(won: boolean, seed: string): string {
   const quotes = won ? benderWinQuotes : benderLossQuotes
-  // Use seed to get consistent quote per entry
   let hash = 0
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0
@@ -50,73 +48,84 @@ function getBenderQuote(won: boolean, seed: string): string {
   return quotes[Math.abs(hash) % quotes.length]
 }
 
+function decodeAddress(topic: string): string {
+  return "0x" + topic.slice(26)
+}
+
+function decodeBetPlacedData(data: string): { amount: bigint; message: string } {
+  try {
+    const decoded = decodeAbiParameters(
+      [
+        { name: "amount", type: "uint256" },
+        { name: "message", type: "string" },
+      ],
+      data as `0x${string}`
+    )
+    return { amount: decoded[0], message: decoded[1] }
+  } catch {
+    return { amount: 0n, message: "" }
+  }
+}
+
+function decodeWinData(data: string): bigint {
+  try {
+    const decoded = decodeAbiParameters(
+      [{ name: "prize", type: "uint256" }],
+      data as `0x${string}`
+    )
+    return decoded[0]
+  } catch {
+    return 0n
+  }
+}
+
 export function ChatHistory() {
   const { t } = useI18n()
-  const publicClient = usePublicClient()
   const [history, setHistory] = useState<HistoryEntry[]>([])
 
   useEffect(() => {
-    if (!publicClient) return
-
     async function fetchHistory() {
       try {
-        // Fetch BetPlaced events to get messages
-        const betLogs = await publicClient!.getLogs({
-          address: CONTRACT_ADDRESS,
-          event: parseAbiItem('event BetPlaced(address indexed player, uint256 amount, string message)'),
-          fromBlock: 0n,
-          toBlock: 'latest',
-        })
+        const betLogs = await fetchBetPlacedLogs()
+        const winLogs = await fetchWinLogs()
 
-        // Fetch Win events
-        const winLogs = await publicClient!.getLogs({
-          address: CONTRACT_ADDRESS,
-          event: parseAbiItem('event Win(address indexed winner, uint256 prize)'),
-          fromBlock: 0n,
-          toBlock: 'latest',
-        })
+        // Build win lookup: address -> { blockNumber, prize }
+        const winByAddress = new Map<string, { block: number; prize: bigint }[]>()
+        for (const log of winLogs) {
+          const addr = decodeAddress(log.topics[1]).toLowerCase()
+          const prize = decodeWinData(log.data)
+          const block = parseInt(log.blockNumber, 16)
+          if (!winByAddress.has(addr)) winByAddress.set(addr, [])
+          winByAddress.get(addr)!.push({ block, prize })
+        }
 
-        // Fetch Loss events
-        const lossLogs = await publicClient!.getLogs({
-          address: CONTRACT_ADDRESS,
-          event: parseAbiItem('event Loss(address indexed player)'),
-          fromBlock: 0n,
-          toBlock: 'latest',
-        })
-
-        // Build win/loss lookup by block number
-        // Win/Loss events happen 1-2 blocks after the bet
-        const winByBlock = new Map(winLogs.map((l) => [l.blockNumber, {
-          winner: l.args.winner?.toLowerCase(),
-          prize: l.args.prize,
-        }]))
-        const lossByBlock = new Set(lossLogs.map((l) => l.blockNumber))
-
-        // Match each bet to its result by finding a win/loss from the same player within a few blocks
         const entries: HistoryEntry[] = betLogs.map((log, i) => {
-          const player = log.args.player?.toLowerCase() ?? ""
+          const player = decodeAddress(log.topics[1]).toLowerCase()
+          const { message } = decodeBetPlacedData(log.data)
+          const betBlock = parseInt(log.blockNumber, 16)
 
-          // Find a matching win event for this player that happened shortly after this bet
+          // Find matching win within 10 blocks
           let didWin = false
           let prize: string | undefined
-          for (const [block, data] of winByBlock) {
-            if (data.winner === player && block > log.blockNumber && block <= log.blockNumber + 10n) {
-              didWin = true
-              prize = data.prize ? formatEther(data.prize) : undefined
-              winByBlock.delete(block) // consume this win so it doesn't match another bet
-              break
-            }
+          const playerWins = winByAddress.get(player) || []
+          const winIndex = playerWins.findIndex(
+            (w) => w.block > betBlock && w.block <= betBlock + 10
+          )
+          if (winIndex >= 0) {
+            didWin = true
+            prize = formatEther(playerWins[winIndex].prize)
+            playerWins.splice(winIndex, 1) // consume
           }
 
           return {
             id: `${log.transactionHash}-${i}`,
-            wallet: log.args.player ?? "",
-            message: log.args.message ?? "",
+            wallet: player,
+            message,
             won: didWin,
             prize,
             blockNumber: log.blockNumber,
           }
-        }).reverse() // Most recent first
+        }).reverse()
 
         setHistory(entries)
       } catch (error) {
@@ -125,9 +134,9 @@ export function ChatHistory() {
     }
 
     fetchHistory()
-    const interval = setInterval(fetchHistory, 10000)
+    const interval = setInterval(fetchHistory, 15000)
     return () => clearInterval(interval)
-  }, [publicClient])
+  }, [])
 
   return (
     <section id="history" className="relative py-16">
@@ -179,7 +188,7 @@ export function ChatHistory() {
                       </span>
                     </div>
                     <span className="font-mono text-xs text-[#7ca4bd]/50">
-                      Bet at block #{entry.blockNumber.toString()}
+                      Bet at block #{parseInt(entry.blockNumber, 16)}
                     </span>
                   </div>
                   <p className="font-mono text-sm leading-relaxed text-[#fffbc7]">{entry.message}</p>
@@ -193,7 +202,7 @@ export function ChatHistory() {
                     </span>
                     {entry.won && (
                       <span className="rounded-full bg-[#fffbc7]/15 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wider text-[#fffbc7]">
-                        WINNER — {entry.prize} ETH
+                        WINNER — {entry.prize} tRBTC
                       </span>
                     )}
                     {!entry.won && (

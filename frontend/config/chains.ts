@@ -1,5 +1,7 @@
 import { defineChain } from '@reown/appkit/networks'
 
+const alchemyRpc = process.env.NEXT_PUBLIC_RSK_TESTNET_RPC || 'https://public-node.testnet.rsk.co'
+
 export const rskTestnet = defineChain({
   id: 31,
   caipNetworkId: 'eip155:31',
@@ -11,7 +13,7 @@ export const rskTestnet = defineChain({
     decimals: 18,
   },
   rpcUrls: {
-    default: { http: ['https://public-node.testnet.rsk.co'] },
+    default: { http: [alchemyRpc] },
   },
   blockExplorers: {
     default: { name: 'RSK Testnet Explorer', url: 'https://explorer.testnet.rootstock.io' },

@@ -22,7 +22,7 @@ createAppKit({
   defaultNetwork: networks[0],
   metadata,
   customRpcUrls: {
-    'eip155:31': ['https://public-node.testnet.rsk.co'],
+    'eip155:31': [process.env.NEXT_PUBLIC_RSK_TESTNET_RPC || 'https://public-node.testnet.rsk.co'],
     'eip155:31337': ['http://127.0.0.1:8545'],
   },
   features: {
