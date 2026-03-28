@@ -2,16 +2,42 @@
 
 import { useI18n } from "@/lib/i18n"
 import { Coins, Users, Trophy, TrendingUp } from "lucide-react"
-
-const stats = [
-  { key: "treasury", value: "12.5 rBTC", icon: Coins, color: "#fffbc7" },
-  { key: "attempts", value: "1,247", icon: Users, color: "#c8deec" },
-  { key: "winners", value: "3", icon: Trophy, color: "#fffbc7" },
-  { key: "successRate", value: "99.76%", icon: TrendingUp, color: "#c8deec" },
-]
+import { useBalance, useReadContract } from "wagmi"
+import { useContractEvents } from "@/hooks/useContractEvents"
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from "@/config/contract"
+import { formatEther } from "viem"
 
 export function Stats() {
   const { t } = useI18n()
+
+  // Read contract balance (treasury)
+  const { data: balance } = useBalance({
+    address: CONTRACT_ADDRESS,
+  })
+
+  // Read current cost
+  const { data: currentCost } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: 'currentCost',
+  })
+
+  // Count wins and losses from events
+  const { wins, losses } = useContractEvents()
+
+  const treasuryRaw = balance ? parseFloat(formatEther(balance.value)) : 0
+  const treasury = treasuryRaw === 0 ? "0" : treasuryRaw < 0.0001 ? treasuryRaw.toFixed(8) : treasuryRaw.toFixed(4)
+  const totalAttempts = wins + losses
+  const winRate = totalAttempts > 0
+    ? ((losses / totalAttempts) * 100).toFixed(2)
+    : "100"
+
+  const stats = [
+    { key: "treasury", value: `${treasury} ${balance?.symbol ?? 'ETH'}`, icon: Coins, color: "#fffbc7" },
+    { key: "attempts", value: totalAttempts.toLocaleString(), icon: Users, color: "#c8deec" },
+    { key: "winners", value: wins.toLocaleString(), icon: Trophy, color: "#fffbc7" },
+    { key: "successRate", value: `${winRate}%`, icon: TrendingUp, color: "#c8deec" },
+  ]
 
   return (
     <section className="relative border-y border-[#163044] bg-[#061525]">

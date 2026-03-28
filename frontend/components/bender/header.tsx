@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n"
-import { Wallet, Globe } from "lucide-react"
+import { Wallet } from "lucide-react"
 
 interface HeaderProps {
   isConnected: boolean
@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ isConnected, onConnect, onShowModal }: HeaderProps) {
-  const { lang, setLang, t } = useI18n()
+  const { t } = useI18n()
 
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-[#163044]/50 bg-[#000d18]/90 backdrop-blur-md">
@@ -44,28 +44,20 @@ export function Header({ isConnected, onConnect, onShowModal }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setLang(lang === "es" ? "en" : "es")}
-            className="flex items-center gap-1.5 rounded-lg border border-[#163044] px-3 py-1.5 font-mono text-sm uppercase text-[#7ca4bd] transition-all hover:border-[#7ca4bd] hover:text-[#c8deec]"
-          >
-            <Globe className="h-4 w-4" />
-            <span>{lang}</span>
-          </button>
-
-          <Button
-            onClick={onConnect}
-            size="sm"
-            className={`gap-2 rounded-lg border-2 font-mono text-sm font-bold uppercase tracking-wider transition-all ${
-              isConnected
-                ? "border-[#c8deec] bg-[#c8deec]/20 text-[#c8deec] hover:bg-[#c8deec]/30"
-                : "border-[#fffbc7] bg-[#fffbc7] text-[#000d18] hover:bg-[#fffbc7]/90"
-            }`}
-          >
-            <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline">
-              {isConnected ? t("nav.connected") : t("nav.connectWallet")}
-            </span>
-          </Button>
+          {isConnected ? (
+            <appkit-button size="sm" />
+          ) : (
+            <Button
+              onClick={onConnect}
+              size="sm"
+              className="gap-2 rounded-lg border-2 border-[#fffbc7] bg-[#fffbc7] text-[#000d18] hover:bg-[#fffbc7]/90 font-mono text-sm font-bold uppercase tracking-wider transition-all"
+            >
+              <Wallet className="h-4 w-4" />
+              <span className="hidden sm:inline">
+                {t("nav.connectWallet")}
+              </span>
+            </Button>
+          )}
         </div>
       </div>
     </header>

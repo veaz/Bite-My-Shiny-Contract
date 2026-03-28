@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Orbitron, Share_Tech_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { headers } from 'next/headers'
+import AppKitProvider from '@/context/appkit'
 import './globals.css'
 
 const orbitron = Orbitron({ 
@@ -42,15 +44,20 @@ export const viewport: Viewport = {
   themeColor: '#1a1625',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const headersObj = await headers()
+  const cookies = headersObj.get('cookie')
+
   return (
     <html lang="en" className="dark">
       <body className={`${orbitron.variable} ${shareTechMono.variable} font-sans antialiased`}>
-        {children}
+        <AppKitProvider cookies={cookies}>
+          {children}
+        </AppKitProvider>
         <Analytics />
       </body>
     </html>

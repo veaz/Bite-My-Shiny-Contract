@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n"
 import { ExternalLink, Github } from "lucide-react"
 
 export function Footer() {
-  const { t, lang } = useI18n()
+  const { t } = useI18n()
 
   return (
     <footer className="relative border-t border-[#163044] bg-[#000d18]">
@@ -12,15 +12,7 @@ export function Footer() {
 
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row">
         <div className="flex items-center gap-3">
-          <div className="relative h-8 w-8 rounded-lg bg-gradient-to-b from-[#a6c1d6] to-[#7ca4bd]">
-            <div className="absolute -top-2 left-1/2 h-3 w-0.5 -translate-x-1/2 bg-[#7ca4bd]">
-              <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-[#fffbc7]" />
-            </div>
-            <div className="absolute left-1/2 top-2 flex -translate-x-1/2 gap-0.5">
-              <div className="h-2 w-2 rounded-full border border-[#333] bg-white" />
-              <div className="h-2 w-2 rounded-full border border-[#333] bg-white" />
-            </div>
-          </div>
+          <img src="/bender.png" alt="Bender" className="h-8 w-8 object-contain" />
           <p className="font-mono text-sm text-[#7ca4bd]/50">
             {t("footer.disclaimer")}
           </p>
@@ -28,7 +20,9 @@ export function Footer() {
 
         <div className="flex items-center gap-3">
           <a
-            href="#"
+            href="https://github.com/veaz/Bite-My-Shiny-Contract"
+            target="_blank"
+            rel="noopener noreferrer"
             className="group flex items-center gap-2 rounded-lg border border-[#163044] px-4 py-2 font-mono text-sm text-[#7ca4bd] transition-all hover:border-[#7ca4bd] hover:text-[#c8deec]"
           >
             <Github className="h-4 w-4" />
@@ -40,9 +34,7 @@ export function Footer() {
 
       <div className="border-t border-[#163044]/50 py-4 text-center">
         <p className="font-sans text-xs font-bold uppercase tracking-[0.3em] text-[#fffbc7]/20">
-          {lang === "es"
-            ? "Buenas noticias, todos! Estan a punto de perder su dinero."
-            : "Good news, everyone! You are about to lose your money."}
+          I'm 100% blockchain. And 100% keeping your money.
         </p>
       </div>
     </footer>

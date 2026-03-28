@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useAppKit, useAppKitAccount } from "@reown/appkit/react"
 import { I18nProvider } from "@/lib/i18n"
 import { Header } from "@/components/bender/header"
 import { Hero } from "@/components/bender/hero"
@@ -11,24 +12,12 @@ import { Footer } from "@/components/bender/footer"
 import { HowItWorksModal } from "@/components/bender/how-it-works-modal"
 
 function BenderApp() {
-  const [isConnected, setIsConnected] = useState(false)
+  const { open } = useAppKit()
+  const { isConnected } = useAppKitAccount()
   const [showModal, setShowModal] = useState(false)
-  const [showInitialModal, setShowInitialModal] = useState(true)
 
-  // Show initial modal on first visit
-  useEffect(() => {
-    const hasVisited = sessionStorage.getItem("bender-visited")
-    if (!hasVisited) {
-      setShowInitialModal(true)
-      sessionStorage.setItem("bender-visited", "true")
-    } else {
-      setShowInitialModal(false)
-    }
-  }, [])
-
-  const handleConnect = async () => {
-    // Simulate wallet connection
-    setIsConnected(!isConnected)
+  const handleConnect = () => {
+    open()
   }
 
   const handleShowModal = () => {
@@ -37,7 +26,6 @@ function BenderApp() {
 
   const handleCloseModal = () => {
     setShowModal(false)
-    setShowInitialModal(false)
   }
 
   const handleStartPlaying = () => {
@@ -45,7 +33,7 @@ function BenderApp() {
       handleConnect()
     }
     // Scroll to chat input
-    document.getElementById("history")?.scrollIntoView({ behavior: "smooth" })
+    document.getElementById("chat")?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
@@ -59,14 +47,14 @@ function BenderApp() {
       <main className="flex-1">
         <Hero onShowModal={handleShowModal} onStartPlaying={handleStartPlaying} />
         <Stats />
-        <ChatHistory />
         <ChatInput isConnected={isConnected} onConnect={handleConnect} />
+        <ChatHistory />
       </main>
 
       <Footer />
 
       <HowItWorksModal
-        isOpen={showModal || showInitialModal}
+        isOpen={showModal}
         onClose={handleCloseModal}
       />
     </div>
