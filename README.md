@@ -93,7 +93,7 @@ bender_rsk/
 - [x] Live stats from contract (treasury, wins, losses)
 - [x] History from on-chain events via Blockscout API
 - [x] Deploy to RSK Testnet
-- [x] Contract verified on Blockscout
+- [x] Contract verified on Blockscout and RSK Explorer
 
 ---
 
