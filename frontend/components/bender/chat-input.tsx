@@ -220,7 +220,7 @@ export function ChatInput({ isConnected, onConnect }: ChatInputProps) {
               </Button>
             </form>
             <p className="mt-2 font-mono text-xs text-[#7ca4bd]/50">
-              Current cost: {costDisplay} ETH
+              Current cost: {costDisplay} rBTC
             </p>
           </div>
         ) : (

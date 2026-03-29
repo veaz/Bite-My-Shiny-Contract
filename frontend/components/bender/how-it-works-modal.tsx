@@ -13,28 +13,7 @@ interface HowItWorksModalProps {
 function BenderModalFace() {
   return (
     <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center">
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-[#c8deec] via-[#a6c1d6] to-[#7ca4bd] shadow-lg">
-        <div className="absolute -top-5 left-1/2 h-6 w-1 -translate-x-1/2 rounded-full bg-[#7ca4bd]">
-          <div className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-[#fffbc7]" />
-        </div>
-
-        <div className="absolute left-1/2 top-5 flex -translate-x-1/2 items-center gap-1.5">
-          <div className="bender-eyes h-8 w-8 rounded-full border-3 border-[#333] bg-white">
-            <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black" />
-          </div>
-          <div className="bender-eyes h-8 w-8 rounded-full border-3 border-[#333] bg-white">
-            <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black" />
-          </div>
-        </div>
-
-        <div className="absolute bottom-4 left-1/2 h-6 w-14 -translate-x-1/2 rounded-md border-2 border-[#555] bg-[#333]">
-          <div className="absolute inset-x-1 top-1/2 flex -translate-y-1/2 justify-between">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-4 w-0.5 bg-[#444]" />
-            ))}
-          </div>
-        </div>
-      </div>
+      <img src="/bender.png" alt="Bender" className="h-full w-full object-contain drop-shadow-[0_0_20px_rgba(200,222,236,0.3)]" />
     </div>
   )
 }
